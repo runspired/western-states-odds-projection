@@ -45,7 +45,6 @@ export default class extends Modifier {
   }
 
   modify(element, [config]) {
-    console.log(config);
     const { chart } = this;
     if (!chart) {
       this.chart = new Chart(element, config);

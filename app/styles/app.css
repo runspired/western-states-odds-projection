@@ -4,13 +4,15 @@ body {
   font-size: 125%;
   background: #000;
   color: #bbb;
+  margin: 0;
 }
 
 .page {
   font-size: 0.75rem;
-  width: calc(100% - 2em);
+  width: calc(100vw - 2em);
   padding: 1em;
   margin: 0 auto;
+  position: relative;
 }
 .year {
   margin: 0 0 2rem 0;
@@ -55,4 +57,28 @@ tr:nth-of-type(even) {
   width: 100%;
   height: 50vh;
   margin: 2em 0;
+}
+
+@media (max-width: 600px) {
+  .page {
+    font-size: 0.5rem;
+  }
+  .year {
+    margin: 0 0 1rem 0;
+  }
+  .year > table {
+    width: calc(100vw - 4em);
+  }
+  tr {
+    width: 100%;
+  }
+  tr,
+  td {
+    margin: 0;
+    padding: 0;
+  }
+  .lottery-trends {
+    height: 80vh;
+    width: calc(100vw - 2em);
+  }
 }

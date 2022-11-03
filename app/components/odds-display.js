@@ -111,6 +111,7 @@ export default class extends Component {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           title: {
             color: '#fff',

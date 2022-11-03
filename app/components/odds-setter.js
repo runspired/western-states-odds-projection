@@ -223,18 +223,11 @@ class Year {
         g.odds * count + this.config.waitlistFactor * g.waitlistOdds * count;
 
       let weighted = selected * g.yearNo;
-      console.log({
-        yearNo: g.yearNo,
-        weighted,
-        selected,
-      });
+
       numerator += weighted;
       denominator += selected;
     });
-    console.log({
-      numerator,
-      denominator,
-    });
+
     return (numerator / denominator).toFixed(1);
   }
 }
