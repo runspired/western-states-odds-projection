@@ -11,7 +11,7 @@ const GROUP_SEED_DATA_2018 = [2658, 1060, 668, 283, 161, 71, 8];
 const GROUP_SEED_DATA_2019 = [3113, 1281, 697, 455, 191, 95, 30];
 const GROUP_SEED_DATA_2020 = [3250, 1447, 914, 549, 315, 126, 54, 9];
 const GROUP_SEED_DATA_2022 = [3318, 1063, 722, 514, 328, 186, 59, 18];
-// const GROUP_SEED_DATA_2023 = [2180, 1001, 506, 358, 241, 163, 92, 27, 5];
+const GROUP_SEED_DATA_2023 = [2381, 1085, 535, 386, 263, 178, 96, 28, 5];
 const DATA_SETS = {
   2015: GROUP_SEED_DATA_2015,
   2016: GROUP_SEED_DATA_2016,
@@ -20,7 +20,7 @@ const DATA_SETS = {
   2019: GROUP_SEED_DATA_2019,
   2020: GROUP_SEED_DATA_2020,
   2022: GROUP_SEED_DATA_2022,
-  // 2023: GROUP_SEED_DATA_2023,
+  2023: GROUP_SEED_DATA_2023,
 };
 const DRAWS = 250;
 const WAITLIST_DRAWS = 75;
@@ -180,7 +180,7 @@ class Year {
   get _50PerOddsYear() {
     const odds = this.groups.find((g) => g.odds >= 0.5);
     if (!odds) {
-      return this.groups.length + 2;
+      return this.groups.length + 1;
     }
     return odds.yearNo;
   }
@@ -189,7 +189,7 @@ class Year {
   get _75PerOddsYear() {
     const odds = this.groups.find((g) => g.odds >= 0.75);
     if (!odds) {
-      return this.groups.length + 2;
+      return this.groups.length + 1;
     }
     return odds.yearNo;
   }
