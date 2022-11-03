@@ -41,7 +41,7 @@ jobs:
       shell: bash
       run: pnpm install --prefer-offline
     - name: Build
-      run: ember build -e production
+      run: pnpm exec ember build -e production
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
   deploy:
