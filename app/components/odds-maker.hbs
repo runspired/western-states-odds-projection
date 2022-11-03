@@ -1,0 +1,45 @@
+{{#each @model as |y|}}
+  <div class="year">
+    <h2>{{y.year}} Lottery ({{if y.isActual 'Actual' 'Projected'}})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Years</th>
+          <th>Applicants</th>
+          <th>Tickets/Applicant</th>
+          <th>Total Tickets</th>
+          <th>Odds</th>
+          <th>Waitlist Odds<3,/th>
+          <th>Combined Odds</th>
+          <th>Expected Entrants</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each y.groups as |g|}}
+          <tr>
+            <td>{{g.yearNo}}</td>
+            <td>{{g.applicants}}</td>
+            <td>{{g.ticketsPer}}</td>
+            <td>{{g.totalTickets}}</td>
+            <td>{{to-fixed g.odds 100}}%</td>
+            <td>{{to-fixed g.waitlistOdds 100}}%</td>
+            <td>{{to-fixed g.combinedOdds 100}}%</td>
+            <td>{{g.expectedEntrants}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Years ({{y.groups.length}})</th>
+          <th>Applicants ({{y.totalApplicants}})</th>
+          <th>Tickets/Applicant ({{y.avgTickets}} avg)</th>
+          <th>Total Tickets ({{y.totalTickets}})</th>
+          <th>Odds</th>
+          <th>Waitlist Odds</th>
+          <th>Combined Odds</th>
+          <th>Expected Entrants</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+{{/each}}
