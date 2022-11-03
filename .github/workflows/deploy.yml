@@ -44,6 +44,8 @@ jobs:
       run: pnpm exec ember build -e production
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
+      with:
+        path: dist
   deploy:
     environment:
       name: github-pages
