@@ -3,7 +3,7 @@ import { cached, tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 
 const GROWTH_FACTOR = 0.15;
-const ATTRITION = [0.67, 0.3, 0.25, 0.25, 0.31, 0.5, 0.08];
+const ATTRITION = [0.64, 0.32, 0.24, 0.24, 0.24, 0.12, 0.08, 0.12];
 const GROUP_SEED_DATA_2015 = [1427, 641, 281, 136, 57, 24];
 const GROUP_SEED_DATA_2016 = [2233, 639, 377, 171, 71, 14, 5];
 const GROUP_SEED_DATA_2017 = [2427, 1023, 397, 256, 112, 31, 2];
