@@ -139,6 +139,7 @@ export default class extends Component {
         scales: {
           x: {
             display: true,
+            stacked: true,
             title: {
               color: '#fff',
               display: true,
