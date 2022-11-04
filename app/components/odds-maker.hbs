@@ -18,26 +18,26 @@
         {{#each y.groups as |g|}}
           <tr>
             <td>{{g.yearNo}}</td>
-            <td>{{g.applicants}}</td>
-            <td>{{g.ticketsPer}}</td>
-            <td>{{g.totalTickets}}</td>
+            <td>{{to-fixed g.applicants}}</td>
+            <td>{{to-fixed g.ticketsPer}}</td>
+            <td>{{to-fixed g.totalTickets}}</td>
             <td>{{to-fixed g.odds 100}}%</td>
             <td>{{to-fixed g.waitlistOdds 100}}%</td>
             <td>{{to-fixed g.combinedOdds 100}}%</td>
-            <td>{{g.expectedEntrants}}</td>
+            <td>{{to-fixed g.expectedEntrants}}</td>
           </tr>
         {{/each}}
       </tbody>
       <tfoot>
         <tr>
           <th>Totals</th>
-          <th>{{y.totalApplicants}}</th>
-          <th>{{y.avgTickets}} avg</th>
-          <th>{{y.totalTickets}}</th>
+          <th>{{to-fixed y.totalApplicants}}</th>
+          <th>{{to-fixed y.avgTickets}} avg</th>
+          <th>{{to-fixed y.totalTickets}}</th>
           <th></th>
           <th></th>
           <th></th>
-          <th>{{y.expectedEntrants}}</th>
+          <th>{{to-fixed y.expectedEntrants}}</th>
         </tr>
       </tfoot>
     </table>
