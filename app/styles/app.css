@@ -45,9 +45,6 @@ td {
   font-weight: 300;
   text-align: left;
 }
-tfoot {
-  display: none;
-}
 tr:nth-of-type(even) {
   background-color: rgba(200, 255, 255, 0.2);
 }
