@@ -30,6 +30,7 @@ export default class extends Component {
       'rgba(255, 255, 0, 0.8)',
       'rgba(0, 255, 255, 0.8)',
       'rgba(0, 255, 0, 0.8)',
+      'rgba(100, 200, 255, 0.8)',
     ];
     return {
       data: {
@@ -45,6 +46,18 @@ export default class extends Component {
             borderWidth: 1,
             pointStyle: 'circle',
             radius: 1,
+          },
+          {
+            type: 'line',
+            label: 'Total Applicants',
+            data: this.args.model.map((y) => y.totalApplicants),
+            borderColor: colors[6],
+            backgroundColor: colors[6],
+            fill: false,
+            borderWidth: 2,
+            pointStyle: 'circle',
+            radius: 2,
+            yAxisID: 'y',
           },
           {
             type: 'line',
