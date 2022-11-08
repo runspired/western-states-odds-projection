@@ -285,12 +285,11 @@ export default class extends Component {
     const years = [];
     let year = null;
     for (let i = 0; i <= this.totalYears; i++) {
-      let newYear = new Year(year, config);
-      if (newYear.year === 2021) {
+      year = new Year(year, config);
+      if (year.year === 2021) {
         continue;
       }
-      years.push(newYear);
-      year = newYear;
+      years.push(year);
     }
     return years;
   }
