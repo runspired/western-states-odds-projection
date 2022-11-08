@@ -285,8 +285,12 @@ export default class extends Component {
     const years = [];
     let year = null;
     for (let i = 0; i <= this.totalYears; i++) {
-      year = new Year(year, config);
-      years.push(year);
+      let newYear = new Year(year, config);
+      if (newYear.year === 2020) {
+        continue;
+      }
+      years.push(newYear);
+      year = newYear;
     }
     return years;
   }
