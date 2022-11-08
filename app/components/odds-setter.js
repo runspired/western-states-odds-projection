@@ -26,7 +26,7 @@ const DRAWS = 250;
 const WAITLIST_DRAWS = 75;
 const WAITLIST_FACTOR = 0.5;
 const DEFAULT_ATTRITION = 0.2;
-const TOTAL_YEARS = 25;
+const TOTAL_YEARS = 8;
 
 class Group {
   constructor(config) {
@@ -288,6 +288,6 @@ export default class extends Component {
       year = new Year(year, config);
       years.push(year);
     }
-    return years;
+    return years.reverse();
   }
 }
