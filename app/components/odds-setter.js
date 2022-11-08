@@ -286,7 +286,7 @@ export default class extends Component {
     let year = null;
     for (let i = 0; i <= this.totalYears; i++) {
       let newYear = new Year(year, config);
-      if (newYear.year === 2020) {
+      if (newYear.year === 2021) {
         continue;
       }
       years.push(newYear);
