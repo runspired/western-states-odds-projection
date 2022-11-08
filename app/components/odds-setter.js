@@ -288,6 +288,11 @@ export default class extends Component {
       year = new Year(year, config);
       years.push(year);
     }
-    return years.reverse();
+    return years;
+  }
+
+  @cached
+  get reversed() {
+    return this.model.slice().reverse();
   }
 }
