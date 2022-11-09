@@ -84,10 +84,12 @@ class Group {
   get expectedEntrants() {
     let count = this.applicants;
 
-    // adjust for selected
-    let selected =
-      this.odds * count +
-      this.config.waitlistFactor * this.waitlistOdds * count;
+    let selected = this.odds * count;
+    // we can't know the distribution of who drops
+    // so just doing the distribution of the original lottery
+    // is best.
+    // this.odds * count +
+    // this.config.waitlistFactor * this.waitlistOdds * count;
 
     return Math.round(selected);
   }
