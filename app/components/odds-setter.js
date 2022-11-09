@@ -53,7 +53,7 @@ class Group {
     let odds = 1;
     let entries = this.ticketsPer;
     let ticketCount = this.year.totalTickets;
-    let avgTickets = this.year.avgTickets;
+    let avgTickets = parseFloat(this.year.avgTickets);
     const { draws, waitlistDraws } = this.config;
 
     for (let i = draws + 1; i <= draws + waitlistDraws; i++) {
@@ -66,7 +66,18 @@ class Group {
 
   @cached
   get combinedOdds() {
-    return this.odds + this.waitlistOdds;
+    let odds = 1;
+    let entries = this.ticketsPer;
+    let ticketCount = this.year.totalTickets;
+    let avgTickets = parseFloat(this.year.avgTickets);
+    const { draws, waitlistDraws } = this.config;
+
+    for (let i = 0; i <= draws + waitlistDraws; i++) {
+      let drawOdds = 1 - entries / (ticketCount - i * avgTickets);
+      odds = odds * drawOdds;
+    }
+
+    return 1 - odds;
   }
 
   @cached
