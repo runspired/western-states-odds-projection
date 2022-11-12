@@ -11,7 +11,7 @@ const GROUP_SEED_DATA_2018 = [2658, 1060, 668, 283, 161, 71, 8];
 const GROUP_SEED_DATA_2019 = [3113, 1281, 697, 455, 191, 95, 30];
 const GROUP_SEED_DATA_2020 = [3250, 1447, 914, 549, 315, 126, 54, 9];
 const GROUP_SEED_DATA_2022 = [3318, 1063, 722, 514, 328, 186, 59, 18];
-const GROUP_SEED_DATA_2023 = [3034, 1362, 640, 488, 326, 221, 118, 32, 5];
+const GROUP_SEED_DATA_2023 = [3180, 1436, 675, 503, 344, 228, 121, 34, 5];
 const DATA_SETS = {
   2015: GROUP_SEED_DATA_2015,
   2016: GROUP_SEED_DATA_2016,
@@ -40,7 +40,7 @@ class Group {
     let ticketCount = this.year.totalTickets;
     let avgTickets = parseFloat(this.year.avgTickets);
 
-    for (let i = 1; i <= this.config.draws; i++) {
+    for (let i = 0; i < this.config.draws; i++) {
       let drawOdds = 1 - entries / (ticketCount - i * avgTickets);
       odds = odds * drawOdds;
     }
@@ -56,7 +56,7 @@ class Group {
     let avgTickets = parseFloat(this.year.avgTickets);
     const { draws, waitlistDraws } = this.config;
 
-    for (let i = draws + 1; i <= draws + waitlistDraws; i++) {
+    for (let i = draws; i < draws + waitlistDraws; i++) {
       let drawOdds = 1 - entries / (ticketCount - i * avgTickets);
       odds = odds * drawOdds;
     }
@@ -225,7 +225,7 @@ class Year {
   }
 
   @cached
-  get avgYearsWeighted() {
+  get _avgYearsWeighted() {
     let numerator = 0;
     let denominator = 1;
     this.groups.forEach((g) => {
@@ -241,7 +241,12 @@ class Year {
       denominator += selected;
     });
 
-    return (numerator / denominator).toFixed(1);
+    return numerator / denominator;
+  }
+
+  @cached
+  get avgYearsWeighted() {
+    return this._avgYearsWeighted.toFixed(1);
   }
 }
 
