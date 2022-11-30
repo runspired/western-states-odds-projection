@@ -2,8 +2,10 @@ import Component from '@glimmer/component';
 import { cached, tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 
-const GROWTH_FACTOR = 0.15;
-const ATTRITION = [0.64, 0.32, 0.24, 0.24, 0.24, 0.12, 0.08, 0.12];
+function toFixed2(num) {
+  return Math.round(num * 100) / 100;
+}
+// const ATTRITION = [0.52, 0.32, 0.24, 0.24, 0.24, 0.12, 0.08, 0.12];
 const GROUP_SEED_DATA_2015 = [1427, 641, 281, 136, 57, 24];
 const GROUP_SEED_DATA_2016 = [2233, 639, 377, 171, 71, 14, 5];
 const GROUP_SEED_DATA_2017 = [2427, 1023, 397, 256, 112, 31, 2];
@@ -11,7 +13,7 @@ const GROUP_SEED_DATA_2018 = [2658, 1060, 668, 283, 161, 71, 8];
 const GROUP_SEED_DATA_2019 = [3113, 1281, 697, 455, 191, 95, 30];
 const GROUP_SEED_DATA_2020 = [3250, 1447, 914, 549, 315, 126, 54, 9];
 const GROUP_SEED_DATA_2022 = [3318, 1063, 722, 514, 328, 186, 59, 18];
-const GROUP_SEED_DATA_2023 = [3180, 1436, 675, 503, 344, 228, 121, 34, 5];
+const GROUP_SEED_DATA_2023 = [3563, 1576, 733, 525, 373, 232, 126, 37, 5];
 const DATA_SETS = {
   2015: GROUP_SEED_DATA_2015,
   2016: GROUP_SEED_DATA_2016,
@@ -22,11 +24,6 @@ const DATA_SETS = {
   2022: GROUP_SEED_DATA_2022,
   2023: GROUP_SEED_DATA_2023,
 };
-const DRAWS = 275;
-const WAITLIST_DRAWS = 75;
-const WAITLIST_FACTOR = 0.5;
-const DEFAULT_ATTRITION = 0.2;
-const TOTAL_YEARS = 8;
 
 class Group {
   constructor(config) {
@@ -149,7 +146,9 @@ class Year {
       seeds = DATA_SETS[this.year];
     }
     return seeds.map((applicants, yearIndex) => {
-      const ticketsPer = Math.pow(2, yearIndex);
+      const ticketsPer = this.isActual
+        ? Math.pow(2, yearIndex)
+        : this.config.formula(yearIndex);
       return new Group({
         applicants,
         yearNo: yearIndex + 1,
@@ -181,12 +180,20 @@ class Year {
 
   @cached
   get _10PerOddsYear() {
-    return this.groups.find((g) => g.odds >= 0.1).yearNo;
+    const odds = this.groups.find((g) => g.odds >= 0.1);
+    if (!odds) {
+      return this.groups.length + 1;
+    }
+    return odds.yearNo;
   }
 
   @cached
   get _25PerOddsYear() {
-    return this.groups.find((g) => g.odds >= 0.25).yearNo;
+    const odds = this.groups.find((g) => g.odds >= 0.25);
+    if (!odds) {
+      return this.groups.length + 1;
+    }
+    return odds.yearNo;
   }
 
   @cached
@@ -250,15 +257,97 @@ class Year {
   }
 }
 
+const datasets = Object.keys(DATA_SETS);
+const newEntries = datasets.map((k) => DATA_SETS[k][0]);
+let gr = 0;
+let grc = 0;
+for (let i = 1; i < newEntries.length; i++) {
+  gr += (newEntries[i] - newEntries[i - 1]) / newEntries[i - 1];
+  grc++;
+}
+const GROWTH_FACTOR = toFixed2(gr / grc);
+const config = {
+  growthRate: GROWTH_FACTOR,
+  draws: 225,
+  waitlistDraws: 50,
+  waitlistFactor: 0.5,
+  startYear: 2015,
+  attrition: [],
+  defaultAttrition: 0.2,
+  formula: (n) => Math.pow(2, n),
+};
+const years = [];
+let year = null;
+for (let i = 0; i <= 8; i++) {
+  year = new Year(year, config);
+  if (year.year === 2021) {
+    continue;
+  }
+  years.push(year);
+}
+let longest = 0;
+const ATTRITIONS = datasets.map((key, index) => {
+  if (index === 0) {
+    return [];
+  }
+  let attritions = [];
+  let prev = DATA_SETS[datasets[index - 1]];
+  let curr = DATA_SETS[key];
+  let prevYear = years[index - 1];
+  for (let i = 1; i < curr.length; i++) {
+    if (i > longest) {
+      longest = i;
+    }
+    let prior = prev[i - 1];
+    let retained = curr[i];
+    let accepted = prevYear.groups[i - 1].expectedEntrants;
+    attritions.push((prior - (retained + accepted)) / prior);
+  }
+  return attritions;
+});
+const ATTRITION = [];
+for (let i = 0; i < longest; i++) {
+  let total = 0;
+  let count = 0;
+  ATTRITIONS.forEach((val) => {
+    if (val.length === 0) {
+      return;
+    }
+    if (i >= val.length) {
+      return;
+    }
+    total += val[i];
+    count++;
+  });
+  ATTRITION.push(toFixed2(total / count));
+}
+const DRAWS = 275;
+const WAITLIST_DRAWS = 75;
+const WAITLIST_FACTOR = 0.5;
+const DEFAULT_ATTRITION = 0.2;
+const TOTAL_YEARS = 9;
+const FORMULA = 'Math.pow(2, n)';
+
 export default class extends Component {
   @tracked totalYears = TOTAL_YEARS;
   @tracked growthRate = GROWTH_FACTOR;
   @tracked draws = DRAWS;
+  @tracked formula = FORMULA;
+  @tracked finalizedFormula = new Function('n', 'return ' + FORMULA);
   @tracked waitlistDraws = WAITLIST_DRAWS;
   @tracked waitlistFactor = WAITLIST_FACTOR;
   @tracked attrition = ATTRITION.map(String).join(',');
   @tracked startYear = 2015;
   @tracked defaultAttrition = DEFAULT_ATTRITION;
+
+  @action updateFormula(event) {
+    this.formula = event.target.value;
+  }
+
+  @action persistFormula(event) {
+    event.preventDefault();
+    this.finalizedFormula = new Function('n', 'return ' + this.formula);
+  }
 
   @action
   updateInt(prop, event) {
@@ -290,6 +379,7 @@ export default class extends Component {
       startYear,
       attrition,
       defaultAttrition,
+      finalizedFormula,
     } = this;
     const config = {
       growthRate: 1 + growthRate,
@@ -299,6 +389,7 @@ export default class extends Component {
       startYear,
       attrition: attrition.split(',').map(parseFloat),
       defaultAttrition,
+      formula: finalizedFormula,
     };
     const years = [];
     let year = null;

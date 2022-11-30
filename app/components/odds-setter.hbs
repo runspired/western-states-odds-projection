@@ -1,6 +1,6 @@
 <div class="settings-form">
   <h2>Projection Settings</h2>
-  <form {{on "submit" this.updateModel}}>
+  <form aria-label="update model" {{on "submit" this.updateModel}}>
     <label>Years: <input type="number" min="0" max="50" value={{this.totalYears}} {{on "input" (fn this.updateInt "totalYears")}}/></label>
     <label>YOY Growth: <input type="number" min="0" step="0.01" max="1" value={{this.growthRate}} {{on "input" (fn this.updateFloat "growthRate")}}/></label>
     <label>Draws: <input type="number" min="0" step="1" max="10000" value={{this.draws}} {{on "input" (fn this.updateInt "draws")}}/></label>
@@ -11,6 +11,10 @@
 
     <br>
     <button hidden type="submit" {{on "click" this.updateModel}}>Update</button>
+  </form>
+  <form aria-label="update formula" {{on "submit" this.persistFormula}}>
+    <label>Ticket Formula (JS, n is number of years in lottery)<input type="text" value={{this.formula}} {{on "input" this.updateFormula}}/></label>
+    <button type="submit" {{on "click" this.persistFormula}}>Update Formula</button>
   </form>
 </div>
 <OddsDisplay @model={{this.model}} />
