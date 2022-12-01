@@ -138,6 +138,7 @@ export class Simulation {
   @tracked runs = 0;
   @tracked totalRuns = 0;
   @tracked count = null;
+  @tracked isComplete = false;
 
   year = null;
 
@@ -152,6 +153,7 @@ export class Simulation {
     const { year } = this;
     let results = [];
     const lottery = new Lottery(year);
+    await breathe();
     for (let i = 0; i < this.totalRuns; i++) {
       const result = lottery.simulate();
       results = updateCount(year, i, results, result);
@@ -159,7 +161,7 @@ export class Simulation {
       this.runs++;
 
       if (this.runs % 25 === 0) {
-        await breath();
+        await breathe();
       }
     }
     this.count = results.map((r) => {
@@ -169,9 +171,10 @@ export class Simulation {
         waitlisted: Math.round(r.waitlisted),
       };
     });
+    this.isComplete = true;
   }
 }
 
-async function breath() {
+async function breathe() {
   await new Promise((r) => setTimeout(r, 0));
 }

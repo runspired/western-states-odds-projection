@@ -35,6 +35,10 @@ class Group {
 
   @cached
   get odds() {
+    const { simulatedEntrants } = this;
+    if (simulatedEntrants !== 'N/A') {
+      return simulatedEntrants / this.applicants;
+    }
     let odds = 1;
     let entries = this.ticketsPer;
     let ticketCount = this.year.totalTickets;
@@ -50,6 +54,10 @@ class Group {
 
   @cached
   get waitlistOdds() {
+    const { simulatedWaitlistedEntrants } = this;
+    if (simulatedWaitlistedEntrants !== 'N/A') {
+      return simulatedWaitlistedEntrants / this.applicants;
+    }
     let odds = 1;
     let entries = this.ticketsPer;
     let ticketCount = this.year.totalTickets;
@@ -66,6 +74,12 @@ class Group {
 
   @cached
   get combinedOdds() {
+    const { simulatedEntrants, simulatedWaitlistedEntrants } = this;
+    if (simulatedWaitlistedEntrants !== 'N/A') {
+      return (
+        (simulatedEntrants + simulatedWaitlistedEntrants) / this.applicants
+      );
+    }
     let odds = 1;
     let entries = this.ticketsPer;
     let ticketCount = this.year.totalTickets;
@@ -97,18 +111,27 @@ class Group {
   @cached
   get simulatedEntrants() {
     const { simulation } = this.year;
-    const data = simulation
-      ? simulation.count.find((v) => v.ticketsPer === this.ticketsPer)
-      : null;
+    const data =
+      simulation && simulation.count
+        ? simulation.count.find((v) => v.ticketsPer === this.ticketsPer)
+        : null;
     return simulation ? data?.entered || 0 : 'N/A';
+  }
+
+  @cached
+  get simulatedWaitlistedEntrants() {
+    const { simulation } = this.year;
+    const data =
+      simulation && simulation.count
+        ? simulation.count.find((v) => v.ticketsPer === this.ticketsPer)
+        : null;
+    return simulation ? data?.waitlisted || 0 : 'N/A';
   }
 }
 
 class Year {
   @tracked year;
   @tracked isActual = false;
-  @tracked hasSimulation = false;
-  @tracked simulation = null;
 
   constructor(parentYear, config) {
     this.parent = parentYear || null;
@@ -117,10 +140,15 @@ class Year {
     this.isActual = DATA_SETS[this.year] !== undefined;
   }
 
-  @action
-  runSimulation() {
-    this.hasSimulation = true;
-    this.simulation = new Simulation(this);
+  @cached
+  get simulation() {
+    if (
+      this.config.useMonteCarlo &&
+      (!this.parent || this.parent.simulation?.isComplete)
+    ) {
+      return new Simulation(this);
+    }
+    return null;
   }
 
   @cached
@@ -203,9 +231,10 @@ class Year {
   @cached
   get simulatedEntrants() {
     const { simulation } = this;
-    const data = simulation
-      ? simulation.count.find((v) => v.ticketsPer === 'Total')
-      : null;
+    const data =
+      simulation && simulation.count
+        ? simulation.count.find((v) => v.ticketsPer === 'Total')
+        : null;
     return simulation ? data?.entered || 0 : 'N/A';
   }
 
@@ -305,6 +334,7 @@ const config = {
   startYear: 2015,
   attrition: [],
   defaultAttrition: 0.2,
+  useMonteCarlo: false,
   formula: (n) => Math.pow(2, n),
 };
 const years = [];
@@ -359,6 +389,18 @@ const DEFAULT_ATTRITION = 0.2;
 const TOTAL_YEARS = 9;
 const FORMULA = 'Math.pow(2, n)';
 
+class Config {
+  @tracked growthRate;
+  @tracked draws;
+  @tracked waitlistDraws;
+  @tracked waitlistFactor;
+  @tracked startYear;
+  @tracked attrition;
+  @tracked defaultAttrition;
+  @tracked formula;
+  @tracked useMonteCarlo;
+}
+
 export default class extends Component {
   @tracked totalYears = TOTAL_YEARS;
   @tracked growthRate = GROWTH_FACTOR;
@@ -370,6 +412,9 @@ export default class extends Component {
   @tracked attrition = ATTRITION.map(String).join(',');
   @tracked startYear = 2015;
   @tracked defaultAttrition = DEFAULT_ATTRITION;
+  @tracked useMonteCarlo = true;
+
+  config = new Config();
 
   @action updateFormula(event) {
     this.formula = event.target.value;
@@ -386,6 +431,11 @@ export default class extends Component {
     this[prop] = parseInt(event.target.value);
   }
 
+  @action updateMonteCarlo(event) {
+    event.preventDefault();
+    this.useMonteCarlo = !this.useMonteCarlo;
+  }
+
   @action updateFloat(prop, event) {
     event.preventDefault();
     this[prop] = parseFloat(event.target.value);
@@ -400,6 +450,8 @@ export default class extends Component {
     event.preventDefault();
   }
 
+  yearCache = new Map();
+
   @cached
   get model() {
     const {
@@ -411,21 +463,33 @@ export default class extends Component {
       attrition,
       defaultAttrition,
       finalizedFormula,
+      useMonteCarlo,
+      config,
+      yearCache,
     } = this;
-    const config = {
+    Object.assign(config, {
       growthRate: 1 + growthRate,
       draws,
+      useMonteCarlo,
       waitlistDraws,
       waitlistFactor,
       startYear,
       attrition: attrition.split(',').map(parseFloat),
       defaultAttrition,
       formula: finalizedFormula,
-    };
+    });
     const years = [];
     let year = null;
+    let yearNum = config.startYear;
     for (let i = 0; i <= this.totalYears; i++) {
-      year = new Year(year, config);
+      let existingYear = yearCache.get(yearNum);
+      if (!existingYear) {
+        year = new Year(year, config);
+        yearCache.set(yearNum, year);
+      } else {
+        year = existingYear;
+      }
+      yearNum++;
       if (year.year === 2021) {
         continue;
       }

@@ -1,39 +1,34 @@
 {{#each @model as |y|}}
   <div class="year">
     <h2>{{y.year}} Lottery ({{if y.isActual 'Actual' 'Projected'}})
-      {{#unless y.hasSimulation}}
-      <button type="button" {{on "click" y.runSimulation}}>Run Monte Carlo Simulation</button>
-      {{/unless}}
     </h2>
-    {{#if y.simulation}}
-      <h3>Simulated {{y.simulation.runs}} of {{y.simulation.totalRuns}} lotteries</h3>
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            {{#each y.simulation.count as |count|}}
-              <th>{{count.ticketsPer}}</th>
-            {{/each}}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Entered</td>
-            {{#each y.simulation.count as |count|}}
-              <td>{{count.entered}}</td>
-            {{/each}}
-          </tr>
-          <tr>
-            <td>Waitlisted</td>
-            {{#each y.simulation.count as |count|}}
-              <td>{{count.waitlisted}}</td>
-            {{/each}}
-          </tr>
-        </tbody>
-      </table>
-      <br>
-      <br>
-    {{/if}}
+    <h3>Simulated {{y.simulation.runs}} of {{y.simulation.totalRuns}} lotteries</h3>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          {{#each y.simulation.count as |count|}}
+            <th>{{count.ticketsPer}}</th>
+          {{/each}}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Entered</td>
+          {{#each y.simulation.count as |count|}}
+            <td>{{count.entered}}</td>
+          {{/each}}
+        </tr>
+        <tr>
+          <td>Waitlisted</td>
+          {{#each y.simulation.count as |count|}}
+            <td>{{count.waitlisted}}</td>
+          {{/each}}
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    <br>
     <table>
       <thead>
         <tr>
