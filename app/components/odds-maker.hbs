@@ -1,6 +1,39 @@
 {{#each @model as |y|}}
   <div class="year">
-    <h2>{{y.year}} Lottery ({{if y.isActual 'Actual' 'Projected'}})</h2>
+    <h2>{{y.year}} Lottery ({{if y.isActual 'Actual' 'Projected'}})
+      {{#unless y.hasSimulation}}
+      <button type="button" {{on "click" y.runSimulation}}>Run Monte Carlo Simulation</button>
+      {{/unless}}
+    </h2>
+    {{#if y.simulation}}
+      <h3>Simulated {{y.simulation.runs}} of {{y.simulation.totalRuns}} lotteries</h3>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            {{#each y.simulation.count as |count|}}
+              <th>{{count.ticketsPer}}</th>
+            {{/each}}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Entered</td>
+            {{#each y.simulation.count as |count|}}
+              <td>{{count.entered}}</td>
+            {{/each}}
+          </tr>
+          <tr>
+            <td>Waitlisted</td>
+            {{#each y.simulation.count as |count|}}
+              <td>{{count.waitlisted}}</td>
+            {{/each}}
+          </tr>
+        </tbody>
+      </table>
+      <br>
+      <br>
+    {{/if}}
     <table>
       <thead>
         <tr>
@@ -12,6 +45,7 @@
           <th>Waitlist<br>Odds<3,/th>
           <th>Combined<br>Odds</th>
           <th>Expected<br>Entrants</th>
+          <th>Simulated<br>Entrants</th>
         </tr>
       </thead>
       <tbody>
@@ -25,6 +59,7 @@
             <td>{{to-fixed g.waitlistOdds 100}}%</td>
             <td>{{to-fixed g.combinedOdds 100}}%</td>
             <td>{{to-fixed g.expectedEntrants}}</td>
+            <td>{{to-fixed g.simulatedEntrants}}</td>
           </tr>
         {{/each}}
       </tbody>
@@ -38,6 +73,7 @@
           <th></th>
           <th></th>
           <th>{{to-fixed y.expectedEntrants}}</th>
+          <th>{{to-fixed y.simulatedEntrants}}</th>
         </tr>
       </tfoot>
     </table>

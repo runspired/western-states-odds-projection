@@ -1,6 +1,7 @@
 import Component from '@glimmer/component';
 import { cached, tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
+import { Simulation } from '../utils/monte-carlo';
 
 function toFixed2(num) {
   return Math.round(num * 100) / 100;
@@ -26,6 +27,8 @@ const DATA_SETS = {
 };
 
 class Group {
+  @tracked applicants = 0;
+
   constructor(config) {
     Object.assign(this, config);
   }
@@ -90,17 +93,34 @@ class Group {
 
     return Math.round(selected);
   }
+
+  @cached
+  get simulatedEntrants() {
+    const { simulation } = this.year;
+    const data = simulation
+      ? simulation.count.find((v) => v.ticketsPer === this.ticketsPer)
+      : null;
+    return simulation ? data?.entered || 0 : 'N/A';
+  }
 }
 
 class Year {
   @tracked year;
   @tracked isActual = false;
+  @tracked hasSimulation = false;
+  @tracked simulation = null;
 
   constructor(parentYear, config) {
     this.parent = parentYear || null;
     this.year = parentYear ? parentYear.year + 1 : config.startYear;
     this.config = config;
     this.isActual = DATA_SETS[this.year] !== undefined;
+  }
+
+  @action
+  runSimulation() {
+    this.hasSimulation = true;
+    this.simulation = new Simulation(this);
   }
 
   @cached
@@ -114,8 +134,10 @@ class Year {
 
         // adjust for selected
         let selected =
-          group.odds * count +
-          this.config.waitlistFactor * group.waitlistOdds * count;
+          group.simulatedEntrants !== 'N/A'
+            ? group.simulatedEntrants
+            : group.odds * count +
+              this.config.waitlistFactor * group.waitlistOdds * count;
         count -= selected;
 
         if (count < 0) {
@@ -176,6 +198,15 @@ class Year {
         return v + g.expectedEntrants;
       }, 0)
     );
+  }
+
+  @cached
+  get simulatedEntrants() {
+    const { simulation } = this;
+    const data = simulation
+      ? simulation.count.find((v) => v.ticketsPer === 'Total')
+      : null;
+    return simulation ? data?.entered || 0 : 'N/A';
   }
 
   @cached
