@@ -140,13 +140,29 @@ class Year {
     this.isActual = DATA_SETS[this.year] !== undefined;
   }
 
+  _simulation = null;
+  _key = null;
+  _canUseCached(config) {
+    const key = this._key;
+    const newKey = `${config.growthRate}:${config.formula}:${config.defaultAttrition}:${config.attrition}:${config.draws}:${config.waitlistDraws}`;
+    this._key = newKey;
+    if (!this._simulation) {
+      return false;
+    }
+    return key === newKey;
+  }
+
   @cached
   get simulation() {
     if (
       this.config.useMonteCarlo &&
       (!this.parent || this.parent.simulation?.isComplete)
     ) {
-      return new Simulation(this);
+      if (this._canUseCached(this.config)) {
+        return this._simulation;
+      }
+      this._simulation = new Simulation(this);
+      return this._simulation;
     }
     return null;
   }

@@ -1,3 +1,7 @@
 <div class="lottery-trends">
-<canvas {{chart this.config}}></canvas>
+  {{#if this.isReady}}
+    <canvas {{chart this.config}}></canvas>
+  {{else}}
+    <h4>Running Monte Carlo Simulations...</h4>
+  {{/if}}
 </div>

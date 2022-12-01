@@ -176,4 +176,12 @@ export default class extends Component {
       },
     };
   }
+
+  @cached
+  get isReady() {
+    const latest = this.args.model.at(-1);
+    return (
+      !latest.config.useMonteCarlo || Boolean(latest.simulation?.isComplete)
+    );
+  }
 }
