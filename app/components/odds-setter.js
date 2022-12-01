@@ -15,6 +15,7 @@ const GROUP_SEED_DATA_2019 = [3113, 1281, 697, 455, 191, 95, 30];
 const GROUP_SEED_DATA_2020 = [3250, 1447, 914, 549, 315, 126, 54, 9];
 const GROUP_SEED_DATA_2022 = [3318, 1063, 722, 514, 328, 186, 59, 18];
 const GROUP_SEED_DATA_2023 = [3563, 1576, 733, 525, 373, 232, 126, 37, 5];
+const MAX_APPLICANTS = 36000;
 const DATA_SETS = {
   2015: GROUP_SEED_DATA_2015,
   2016: GROUP_SEED_DATA_2016,
@@ -175,6 +176,7 @@ class Year {
     if (!this.isActual) {
       const groups = this.parent.groups;
       seeds = [Math.round(groups[0].applicants * this.config.growthRate)];
+      let totalApplicants = seeds[0];
       this.parent.groups.forEach((group) => {
         let count = group.applicants;
 
@@ -209,7 +211,16 @@ class Year {
         }
 
         seeds.push(count);
+        totalApplicants += count;
       });
+
+      if (totalApplicants > this.config.maxApplicants) {
+        const diff = totalApplicants - this.config.maxApplicants;
+        seeds = seeds.map((count) => {
+          const ratio = count / totalApplicants;
+          return count - Math.round(ratio * diff);
+        });
+      }
     } else {
       seeds = DATA_SETS[this.year];
     }
@@ -353,6 +364,7 @@ const config = {
   attrition: [],
   defaultAttrition: 0.2,
   useMonteCarlo: false,
+  maxApplicants: MAX_APPLICANTS,
   formula: (n) => Math.pow(2, n),
 };
 const years = [];
@@ -417,6 +429,7 @@ class Config {
   @tracked defaultAttrition;
   @tracked formula;
   @tracked useMonteCarlo;
+  @tracked maxApplicants;
 }
 
 export default class extends Component {
@@ -431,6 +444,7 @@ export default class extends Component {
   @tracked startYear = 2015;
   @tracked defaultAttrition = DEFAULT_ATTRITION;
   @tracked useMonteCarlo = true;
+  @tracked maxApplicants = MAX_APPLICANTS;
 
   config = new Config();
 
@@ -483,6 +497,7 @@ export default class extends Component {
       finalizedFormula,
       useMonteCarlo,
       config,
+      maxApplicants,
       yearCache,
     } = this;
     Object.assign(config, {
@@ -491,6 +506,7 @@ export default class extends Component {
       useMonteCarlo,
       waitlistDraws,
       waitlistFactor,
+      maxApplicants,
       startYear,
       attrition: attrition.split(',').map(parseFloat),
       defaultAttrition,
