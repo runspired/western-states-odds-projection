@@ -144,7 +144,9 @@ class Year {
   _key = null;
   _canUseCached(config) {
     const key = this._key;
-    const newKey = `${config.growthRate}:${config.formula}:${config.defaultAttrition}:${config.attrition}:${config.draws}:${config.waitlistDraws}`;
+    const newKey = this.isActual
+      ? `${config.draws}:${config.waitlistDraws}` // TODO stable draws for older lotteries
+      : `${config.growthRate}:${config.formula}:${config.defaultAttrition}:${config.attrition}:${config.draws}:${config.waitlistDraws}`;
     this._key = newKey;
     if (!this._simulation) {
       return false;
