@@ -443,7 +443,7 @@ const DRAWS = 275;
 const WAITLIST_DRAWS = 75;
 const WAITLIST_FACTOR = 0.5;
 const DEFAULT_ATTRITION = 0.2;
-const TOTAL_YEARS = 28;
+const TOTAL_YEARS = 9;
 const FORMULA = 'Math.pow(2, n)';
 
 class Config {
