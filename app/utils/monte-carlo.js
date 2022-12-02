@@ -1,116 +1,65 @@
 import { tracked } from '@glimmer/tracking';
+import { WorkerUrl } from './monte-carlo-worker';
 
-function getRandom(max) {
-  return Math.round(Math.random() * max);
-}
-class Lottery {
-  constructor(year) {
-    this.year = year;
-    this.totalTickets = year.totalTickets;
-    const entrants = (this._entrants = []);
-    year.groups.forEach((group) => {
-      const arr = new Array(group.applicants);
-      arr.fill(group.ticketsPer);
-      arr.forEach((ticketCount) => {
-        const entrant = { ticketCount };
+const workers = [];
+const NUM_WORKERS = 15; // cpus - 1 in theory
 
-        entrants.push(entrant);
-      });
-    });
-  }
+let _subscriber = null;
+const CBS = new Map();
+for (let i = 0; i < NUM_WORKERS; i++) {
+  const worker = new Worker(WorkerUrl);
+  worker.addEventListener('message', (e) => {
+    _subscriber(e);
 
-  reset() {
-    this.totalTickets = this.year.totalTickets;
-    this.entrants = this._entrants.slice();
-  }
-
-  getTicket(num) {
-    const { entrants } = this;
-    let ticketPointer = 0;
-    for (let i = 0; i < entrants.length; i++) {
-      let entrant = entrants[i];
-      if (ticketPointer + entrant.ticketCount < num) {
-        ticketPointer += entrant.ticketCount;
-        continue;
-      }
-      for (let j = 0; j < entrant.ticketCount; j++) {
-        if (ticketPointer === num) {
-          return { index: i, entrant };
-        }
-        ticketPointer++;
-      }
+    if (e.data.name === 'status') {
+      CBS.get(worker).resolve();
     }
-    throw new Error(`could not find ticket ${num}`);
-  }
-
-  draw() {
-    const { totalTickets } = this;
-    const pulled = getRandom(totalTickets - 1);
-    const winner = this.getTicket(pulled);
-
-    return winner;
-  }
-
-  simulate() {
-    this.reset();
-    const { draws, waitlistDraws } = this.year.config;
-    const totalDraws = draws + waitlistDraws;
-
-    const entrants = new Set();
-    const waitlist = new Set();
-
-    for (let i = 0; i < totalDraws; i++) {
-      const winner = this.draw();
-      this.entrants.splice(winner.index, 1);
-      this.totalTickets -= winner.entrant.ticketCount;
-      if (i < draws) {
-        entrants.add(winner.entrant);
-      } else {
-        waitlist.add(winner.entrant);
-      }
-    }
-
-    return { entrants, waitlist };
-  }
-}
-
-function getCounts(winners) {
-  const counts = {};
-  winners.forEach((entrant) => {
-    counts[entrant.ticketCount] = counts[entrant.ticketCount] || 0;
-    counts[entrant.ticketCount]++;
   });
-  return counts;
+  workers.push(worker);
 }
 
-function weightedSum(count, old, update) {
-  let sum = count * old + update;
-  return Math.round((sum * 1000) / (count + 1)) / 1000;
+function defer() {
+  let resolve;
+  const promise = new Promise((r) => (resolve = r));
+  return { promise, resolve };
 }
 
-function updateCount(year, count, prior, update) {
-  const newEntrants = getCounts(update.entrants);
-  const newWaitlist = getCounts(update.waitlist);
+function startWorker(worker, year, count) {
+  worker.postMessage({ name: 'start', year, count });
+  const deferred = defer();
+  CBS.set(worker, deferred);
+  return deferred.promise;
+}
+
+function weightedSum(count, old, update, updateCount) {
+  let sum = count * old + update * updateCount;
+  return Math.round((sum * 1000) / (count + updateCount)) / 1000;
+}
+
+function updateCount(year, count, prior, data) {
+  const update = data.count;
+  const updateCount = data.runs;
   const results = year.groups.map((group, index) => {
     if (count === 0) {
-      return {
-        ticketsPer: group.ticketsPer,
-        entered: newEntrants[group.ticketsPer] || 0,
-        waitlisted: newWaitlist[group.ticketsPer] || 0,
-      };
+      return update[index];
     } else {
       let prev = prior[index];
+      if (update[index].ticketsPer !== group.ticketsPer) {
+        throw new Error(`Unexpected Mismatch`);
+      }
       return {
         ticketsPer: group.ticketsPer,
         entered: weightedSum(
           count,
           prev.entered,
-          newEntrants[group.ticketsPer] || 0
+          update[index].entered,
+          updateCount
         ),
         waitlisted: weightedSum(
           count,
           prev.waitlisted,
-          newWaitlist[group.ticketsPer] || 0
+          update[index].waitlisted,
+          updateCount
         ),
       };
     }
@@ -142,7 +91,7 @@ export class Simulation {
 
   year = null;
 
-  constructor(year, count = 1000) {
+  constructor(year, count = 1005) {
     this.year = year;
     this.totalRuns = count;
 
@@ -151,19 +100,54 @@ export class Simulation {
 
   async run() {
     const { year } = this;
+    let runs = 0;
     let results = [];
-    const lottery = new Lottery(year);
-    await breathe();
-    for (let i = 0; i < this.totalRuns; i++) {
-      const result = lottery.simulate();
-      results = updateCount(year, i, results, result);
-      this.count = results;
-      this.runs++;
 
-      if (this.runs % 25 === 0) {
-        await breathe();
+    const { groups, totalTickets, config } = year;
+    const yearData = {
+      year: year.year,
+      groups: groups.map((g) => {
+        return { ticketsPer: g.ticketsPer, applicants: g.applicants };
+      }),
+      totalTickets,
+      config: { draws: config.draws, waitlistDraws: config.waitlistDraws },
+    };
+    yearData.groups.reverse();
+
+    let scheduled = false;
+
+    _subscriber = (e) => {
+      if (e.data.name === 'result') {
+        results = updateCount(year, runs, results, e.data);
+        runs += e.data.runs;
+
+        if (!scheduled) {
+          scheduled = defer();
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              scheduled.resolve();
+              scheduled = false;
+              this.count = results;
+              this.runs = runs;
+            }, 0);
+          });
+        }
       }
+    };
+
+    const promises = workers.map((worker) => {
+      return startWorker(
+        worker,
+        yearData,
+        Math.round(this.totalRuns / NUM_WORKERS)
+      );
+    });
+
+    await Promise.all(promises);
+    if (scheduled) {
+      await scheduled.promise;
     }
+
     this.count = results.map((r) => {
       return {
         ticketsPer: r.ticketsPer,
@@ -173,8 +157,4 @@ export class Simulation {
     });
     this.isComplete = true;
   }
-}
-
-async function breathe() {
-  await new Promise((r) => setTimeout(r, 0));
 }

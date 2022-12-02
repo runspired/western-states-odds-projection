@@ -5,7 +5,7 @@ module.exports = function (environment) {
     modulePrefix: 'odds-calculator',
     environment,
     rootURL:
-      environment === 'production' ? '/western-states-odds-projection/' : '/',
+      environment === 'production' ? '/western-states-odds-projection' : '/',
     locationType: 'history',
     EmberENV: {
       FEATURES: {
