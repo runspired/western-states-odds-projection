@@ -97,7 +97,6 @@ export class Simulation {
   }
 
   async run() {
-    await Promise.resolve();
     const { year } = this;
     let runs = 0;
     let results = [];
@@ -112,6 +111,8 @@ export class Simulation {
       config: { draws: config.draws, waitlistDraws: config.waitlistDraws },
     };
     yearData.groups.reverse();
+
+    await Promise.resolve();
 
     let scheduled = false;
 
