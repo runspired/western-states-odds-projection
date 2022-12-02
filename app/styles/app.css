@@ -63,6 +63,10 @@ td {
   text-align: left;
   overflow: hidden;
 }
+td,
+th {
+  contain: strict;
+}
 tr,
 th,
 td {
