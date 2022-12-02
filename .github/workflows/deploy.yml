@@ -42,16 +42,12 @@ jobs:
       run: pnpm install --prefer-offline
     - name: Build
       run: pnpm exec ember build -e production
-    - name: CompressFiles
-      uses: runspired/ghaction-CompressFiles@master
-      with:
-        path: dist
-        extensions: '.js,.css,.html'
-        tools: 'brotli'
-    - uses: actions/upload-artifact@v3
-      with:
-        name: deployable
-        path: dist
+    # - name: CompressFiles
+    #   uses: runspired/ghaction-CompressFiles@master
+    #   with:
+    #     path: dist
+    #     extensions: '.js,.css,.html'
+    #     tools: 'brotli'
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
       with:
