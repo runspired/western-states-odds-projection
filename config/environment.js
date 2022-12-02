@@ -6,7 +6,7 @@ module.exports = function (environment) {
     environment,
     rootURL:
       environment === 'production' && process.env.CI
-        ? '/western-states-odds-projection'
+        ? '/western-states-odds-projection/'
         : '/',
     locationType: 'history',
     EmberENV: {
