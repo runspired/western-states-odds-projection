@@ -12,9 +12,11 @@ for (let i = 0; i < NUM_WORKERS; i++) {
     if (e.data === true) {
       CBS.get(worker).resolve();
     } else if (e.data === false) {
-      // do nothing, worker shutdown
+      CBS.get(worker).prevStopped = true;
     } else {
-      _subscriber(e);
+      if (CBS.get(worker).prevStopped) {
+        _subscriber(e);
+      }
     }
   });
   workers.push(worker);
@@ -29,8 +31,14 @@ function defer() {
 function startWorker(worker, year, count) {
   worker.postMessage(JSON.stringify({ name: 'start', year, count }));
   const deferred = defer();
+  const isRunning = CBS.get(worker);
+  if (isRunning) {
+    deferred.prevStopped = false;
+  } else {
+    deferred.prevStopped = true;
+  }
   CBS.set(worker, deferred);
-  return deferred.promise;
+  return deferred;
 }
 
 function weightedSum(count, old, update, updateCount) {
@@ -113,8 +121,6 @@ export class Simulation {
       config: { draws: config.draws, waitlistDraws: config.waitlistDraws },
     };
     yearData.groups.reverse();
-
-    await Promise.resolve();
 
     let scheduled = false;
 
