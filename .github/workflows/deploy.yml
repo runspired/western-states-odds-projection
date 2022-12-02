@@ -48,6 +48,10 @@ jobs:
         path: dist
         extensions: '.js,.css,.html'
         tools: 'brotli'
+    - uses: actions/upload-artifact@v3
+      with:
+        name: deployable
+        path: dist
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
       with:
