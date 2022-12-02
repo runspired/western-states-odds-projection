@@ -11,6 +11,8 @@ for (let i = 0; i < NUM_WORKERS; i++) {
   worker.addEventListener('message', (e) => {
     if (e.data === true) {
       CBS.get(worker).resolve();
+    } else if (e.data === false) {
+      // do nothing, worker shutdown
     } else {
       _subscriber(e);
     }

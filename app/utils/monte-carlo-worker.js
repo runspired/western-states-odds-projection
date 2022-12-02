@@ -149,21 +149,18 @@ class WorkerSimulator {
     let results = [];
     const lottery = new Lottery(year);
     for (let i = 0; i < this.totalRuns; i++) {
-      if (this.destroyed) {
-        return;
-      }
       const result = lottery.simulate();
-      if (this.destroyed) {
-        return;
-      }
       results = updateCount(year, this.runs, results, result);
       this.runs++;
 
       if (this.runs % 16 === 0) {
+        await breathe();
+        if (this.destroyed) {
+          return;
+        }
         this.count = results;
         results = [];
         this.runs = 0;
-        await breathe();
       }
     }
     if (this.runs % 16 !== 0) {
@@ -179,6 +176,7 @@ onmessage = (e) => {
   if (data.name === 'start') {
     if (_simulation) {
       _simulation.destroy();
+      postMessage(false);
     }
     _simulation = new WorkerSimulator(data.year, data.count);
   }
