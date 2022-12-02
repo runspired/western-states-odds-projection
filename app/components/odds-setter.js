@@ -160,7 +160,7 @@ class Year {
     const key = this._key;
     const newKey = this.isActual
       ? `${config.draws}:${config.waitlistDraws}` // TODO stable draws for older lotteries
-      : `${config.growthRate}:${config.formula}:${config.defaultAttrition}:${config.attrition}:${config.draws}:${config.waitlistDraws}`;
+      : `${config.maxApplicants}:${config.growthRate}:${config.formula}:${config.defaultAttrition}:${config.attrition}:${config.draws}:${config.waitlistDraws}`;
     this._key = newKey;
     if (!this._simulation) {
       return false;
@@ -176,6 +176,9 @@ class Year {
     ) {
       if (this._canUseCached(this.config)) {
         return this._simulation;
+      }
+      if (this._simulation) {
+        this._simulation.destroy();
       }
       this._simulation = new Simulation(this);
       return this._simulation;

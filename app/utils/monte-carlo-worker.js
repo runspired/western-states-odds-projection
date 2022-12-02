@@ -1,73 +1,93 @@
 const WorkerString = `
+const CAP_ALLOC_LEN = 300_000_000;
 function getRandom(max) {
   return Math.round(Math.random() * max);
 }
+function getTicket(entrants, num) {
+  let ticketPointer = 0;
+  for (let i = 0; i < entrants.length; i++) {
+    let entrant = entrants[i];
+    if (entrant === 0) {
+      continue;
+    }
+    let te = ticketPointer + entrant;
+    if (te < num) {
+      ticketPointer = te;
+      continue;
+    }
+    // num is in the bounds for this entrant
+    entrants[i] = 0;
+    return entrant;
+  }
+  throw new Error(\`could not find ticket \${num}\`);
+}
+
+function attemptDraw(entrants, tickets, totalTickets) {
+  const pulled = getRandom(totalTickets - 1);
+  const winnerIndex = tickets[pulled];
+  const winner = entrants[winnerIndex];
+
+  if (winner !== 0) {
+    entrants[winnerIndex] = 0;
+  }
+
+  return winner;
+}
+
+function draw(entrants, tickets, count) {
+  let winner = 0;
+
+  if (count.abandonAlloc) {
+    const pulled = getRandom(count.totalTickets - 1);
+    const winner = getTicket(entrants, pulled);
+    count.totalTickets -= winner;
+    return winner;
+  }
+
+  while (winner === 0) {
+    winner = attemptDraw(entrants, tickets, count.totalTickets);
+  }
+
+  return winner;
+}
+
 class Lottery {
   constructor(year) {
     this.year = year;
     this.totalTickets = year.totalTickets;
-    const entrants = (this._entrants = []);
-    year.groups.forEach((group) => {
-      for (let i = 0; i < group.applicants; i++) {
-        entrants.push(group.ticketsPer);
-      }
-    });
+    this._entrants = new Uint32Array(year.entrants);
+    this._tickets = CAP_ALLOC_LEN > year.totalTickets ? new Uint32Array(year.tickets) : null;
   }
 
   reset() {
-    this.totalTickets = this.year.totalTickets;
     this.entrants = this._entrants.slice();
-  }
-
-  getTicket(num) {
-    const { entrants } = this;
-    let ticketPointer = 0;
-    for (let i = 0; i < entrants.length; i++) {
-      let entrant = entrants[i];
-      if (ticketPointer + entrant < num) {
-        ticketPointer += entrant;
-        continue;
-      }
-      for (let j = 0; j < entrant; j++) {
-        if (ticketPointer === num) {
-          return { index: i, entrant };
-        }
-        ticketPointer++;
-      }
-    }
-    // throw new Error(\`could not find ticket \${num}\`);
-  }
-
-  draw() {
-    const { totalTickets } = this;
-    const pulled = getRandom(totalTickets - 1);
-    const winner = this.getTicket(pulled);
-
-    return winner;
   }
 
   simulate() {
     this.reset();
     const { draws, waitlistDraws } = this.year.config;
-    const totalDraws = draws + waitlistDraws;
+    let totalDraws = draws + waitlistDraws;
+    let { entrants, totalTickets, _tickets } = this;
+    const ticketCount = { totalTickets, abandonAlloc: CAP_ALLOC_LEN <= totalTickets };
+    if (entrants.length < totalDraws) {
+      totalDraws = entrants.length;
+    }
 
-    const entrants = {};
+    const _entrants = {};
     const waitlist = {};
 
     for (let i = 0; i < totalDraws; i++) {
-      const winner = this.draw();
-      this.entrants.splice(winner.index, 1);
-      this.totalTickets -= winner.entrant;
+      const winner = draw(entrants, _tickets, ticketCount);
       if (i < draws) {
-        entrants[winner.entrant] = entrants[winner.entrant] || 0;
-        entrants[winner.entrant]++;
+        _entrants[winner] = _entrants[winner] || 0;
+        _entrants[winner]++;
       } else {
-        waitlist[winner.entrant] = waitlist[winner.entrant] || 0;
-        waitlist[winner.entrant]++;
+        waitlist[winner] = waitlist[winner] || 0;
+        waitlist[winner]++;
       }
     }
 
-    return { entrants, waitlist };
+    return { entrants: _entrants, waitlist };
   }
 }
 
@@ -103,8 +123,8 @@ function updateCount(year, count, prior, update) {
   });
 }
 
-async function breathe() {
-  await new Promise((r) => setTimeout(r, 0));
+function breathe() {
+  return new Promise((r) => setTimeout(r, 0));
 }
 
 class WorkerSimulator {
@@ -137,6 +157,7 @@ class WorkerSimulator {
   set isComplete(v) {
     postMessage(true);
     this._isComplete = v;
+    _simulation = null;
   }
 
   destroy() {
@@ -153,7 +174,7 @@ class WorkerSimulator {
       results = updateCount(year, this.runs, results, result);
       this.runs++;
 
-      if (this.runs % 16 === 0) {
+      if (this.runs % 8 === 0) {
         await breathe();
         if (this.destroyed) {
           return;
@@ -163,7 +184,7 @@ class WorkerSimulator {
         this.runs = 0;
       }
     }
-    if (this.runs % 16 !== 0) {
+    if (this.runs % 8 !== 0) {
       this.count = results;
     }
     this.isComplete = true;
@@ -172,7 +193,7 @@ class WorkerSimulator {
 let _simulation = null;
 
 onmessage = (e) => {
-  const data = JSON.parse(e.data);
+  const data = e.data;
   if (data.name === 'start') {
     if (_simulation) {
       _simulation.destroy();

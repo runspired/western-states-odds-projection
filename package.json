@@ -63,5 +63,10 @@
     "@embroider/core": "^2.0.2",
     "@embroider/webpack": "^2.0.2",
     "chart.js": "^3.9.1"
+  },
+  "ember-addon": {
+    "paths": [
+      "lib/server-headers"
+    ]
   }
 }
