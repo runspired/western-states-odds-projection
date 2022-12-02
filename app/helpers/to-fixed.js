@@ -1,10 +1,25 @@
 import { helper } from '@ember/component/helper';
 
-function substring([num, mult = 1]) {
+const _cache = new Map();
+function getStr(num) {
+  let str = _cache.get(num);
+
+  if (!str) {
+    str = num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    _cache.set(num, str);
+  }
+
+  return str;
+}
+
+function substring(args) {
+  const num = args[0];
+  const mult = args[1] || 1;
   if (num === 'N/A') {
     return num;
   }
-  return (num * mult).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+  return /*#__NOINLINE__*/ getStr(num * mult);
 }
 
 export default helper(substring);

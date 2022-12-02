@@ -2,17 +2,17 @@ import { tracked } from '@glimmer/tracking';
 import { WorkerUrl } from './monte-carlo-worker';
 
 const workers = [];
-const NUM_WORKERS = 15; // cpus - 1 in theory
+const NUM_WORKERS = 32;
 
 let _subscriber = null;
 const CBS = new Map();
 for (let i = 0; i < NUM_WORKERS; i++) {
   const worker = new Worker(WorkerUrl);
   worker.addEventListener('message', (e) => {
-    _subscriber(e);
-
-    if (e.data.name === 'status') {
+    if (e.data === true) {
       CBS.get(worker).resolve();
+    } else {
+      _subscriber(e);
     }
   });
   workers.push(worker);
@@ -25,7 +25,7 @@ function defer() {
 }
 
 function startWorker(worker, year, count) {
-  worker.postMessage({ name: 'start', year, count });
+  worker.postMessage(JSON.stringify({ name: 'start', year, count }));
   const deferred = defer();
   CBS.set(worker, deferred);
   return deferred.promise;
@@ -36,9 +36,7 @@ function weightedSum(count, old, update, updateCount) {
   return Math.round((sum * 1000) / (count + updateCount)) / 1000;
 }
 
-function updateCount(year, count, prior, data) {
-  const update = data.count;
-  const updateCount = data.runs;
+function updateCount(year, count, prior, update, updateCount) {
   const results = year.groups.map((group, index) => {
     if (count === 0) {
       return update[index];
@@ -91,7 +89,7 @@ export class Simulation {
 
   year = null;
 
-  constructor(year, count = 1005) {
+  constructor(year, count = 1024) {
     this.year = year;
     this.totalRuns = count;
 
@@ -99,6 +97,7 @@ export class Simulation {
   }
 
   async run() {
+    await Promise.resolve();
     const { year } = this;
     let runs = 0;
     let results = [];
@@ -117,26 +116,26 @@ export class Simulation {
     let scheduled = false;
 
     _subscriber = (e) => {
-      if (e.data.name === 'result') {
-        results = updateCount(year, runs, results, e.data);
-        runs += e.data.runs;
+      const data = e.data;
+      const newRuns = data.shift();
+      results = updateCount(year, runs, results, data, newRuns);
+      runs += newRuns;
 
-        if (!scheduled) {
-          scheduled = defer();
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              scheduled.resolve();
-              scheduled = false;
-              this.count = results;
-              this.runs = runs;
-            }, 0);
-          });
-        }
+      if (!scheduled) {
+        scheduled = defer();
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            scheduled.resolve();
+            scheduled = false;
+            this.count = results;
+            this.runs = runs;
+          }, 0);
+        });
       }
     };
 
     const promises = workers.map((worker) => {
-      return startWorker(
+      return /*#__NOINLINE__*/ startWorker(
         worker,
         yearData,
         Math.round(this.totalRuns / NUM_WORKERS)

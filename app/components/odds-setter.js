@@ -35,6 +35,19 @@ class Group {
   }
 
   @cached
+  get ticketsPer() {
+    const yearIndex = this.yearNo - 1;
+    return this.year.isActual
+      ? Math.pow(2, yearIndex)
+      : this.config.formula(yearIndex);
+  }
+
+  @cached
+  get totalTickets() {
+    return this.applicants * this.ticketsPer;
+  }
+
+  @cached
   get odds() {
     const { simulatedEntrants } = this;
     if (simulatedEntrants !== 'N/A') {
@@ -170,8 +183,17 @@ class Year {
     return null;
   }
 
+  _groups = new Map();
+
   @cached
   get groups() {
+    if (
+      this.config.useMonteCarlo &&
+      this.parent &&
+      this.parent.simulation === null
+    ) {
+      return [];
+    }
     let seeds;
     if (!this.isActual) {
       const groups = this.parent.groups;
@@ -225,17 +247,22 @@ class Year {
       seeds = DATA_SETS[this.year];
     }
     return seeds.map((applicants, yearIndex) => {
-      const ticketsPer = this.isActual
-        ? Math.pow(2, yearIndex)
-        : this.config.formula(yearIndex);
-      return new Group({
-        applicants,
-        yearNo: yearIndex + 1,
-        ticketsPer,
-        totalTickets: applicants * ticketsPer,
-        year: this,
-        config: this.config,
-      });
+      let group = this._groups.get(yearIndex);
+
+      if (!group) {
+        group = new Group({
+          applicants,
+          yearNo: yearIndex + 1,
+          year: this,
+          config: this.config,
+        });
+        this._groups.set(yearIndex, group);
+      } else {
+        Object.assign(group, {
+          applicants,
+        });
+      }
+      return group;
     });
   }
 
@@ -416,7 +443,7 @@ const DRAWS = 275;
 const WAITLIST_DRAWS = 75;
 const WAITLIST_FACTOR = 0.5;
 const DEFAULT_ATTRITION = 0.2;
-const TOTAL_YEARS = 9;
+const TOTAL_YEARS = 28;
 const FORMULA = 'Math.pow(2, n)';
 
 class Config {

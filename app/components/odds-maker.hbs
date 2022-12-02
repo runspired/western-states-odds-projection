@@ -1,35 +1,10 @@
-{{#each @model as |y|}}
+{{#each @model key="year" as |y|}}
   <div class="year">
     <h2>{{y.year}} Lottery ({{if y.isActual 'Actual' 'Projected'}})
     </h2>
     <h3>Simulated {{y.simulation.runs}} of {{y.simulation.totalRuns}} lotteries</h3>
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          {{#each y.simulation.count as |count|}}
-            <th>{{count.ticketsPer}}</th>
-          {{/each}}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Entered</td>
-          {{#each y.simulation.count as |count|}}
-            <td>{{count.entered}}</td>
-          {{/each}}
-        </tr>
-        <tr>
-          <td>Waitlisted</td>
-          {{#each y.simulation.count as |count|}}
-            <td>{{count.waitlisted}}</td>
-          {{/each}}
-        </tr>
-      </tbody>
-    </table>
     <br>
-    <br>
-    <table>
+    <table class="year-data">
       <thead>
         <tr>
           <th>Years</th>
@@ -44,7 +19,7 @@
         </tr>
       </thead>
       <tbody>
-        {{#each y.groups as |g|}}
+        {{#each y.groups key="@index" as |g|}}
           <tr>
             <td>{{g.yearNo}}</td>
             <td>{{to-fixed g.applicants}}</td>
@@ -56,6 +31,12 @@
             <td>{{to-fixed g.expectedEntrants}}</td>
             <td>{{to-fixed g.simulatedEntrants}}</td>
           </tr>
+        {{else}}
+        <tr>
+          <td colspan="9">
+            <p>Awaiting Previous Lottery Results</p>
+          </td>
+        </tr>
         {{/each}}
       </tbody>
       <tfoot>

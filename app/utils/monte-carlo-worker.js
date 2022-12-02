@@ -108,7 +108,7 @@ async function breathe() {
 }
 
 class WorkerSimulator {
-  constructor(year, count = 67) {
+  constructor(year, count = 32) {
     this.year = year;
     this.runs = 0;
     this.totalRuns = count;
@@ -123,7 +123,11 @@ class WorkerSimulator {
     return this._count;
   }
   set count(v) {
-    postMessage({ name: 'result', count: v.slice().reverse(), runs: this.runs });
+    // could probably use an array buffer to make this super fast
+    const data = v.slice();
+    data.push(this.runs);
+    data.reverse();
+    postMessage(data);
     this._count = v;
   }
 
@@ -131,7 +135,7 @@ class WorkerSimulator {
     return this._isComplete;
   }
   set isComplete(v) {
-    postMessage({ name: 'status', isComplete: true });
+    postMessage(true);
     this._isComplete = v;
   }
 
@@ -155,14 +159,14 @@ class WorkerSimulator {
       results = updateCount(year, this.runs, results, result);
       this.runs++;
 
-      if (this.runs % 5 === 0) {
+      if (this.runs % 16 === 0) {
         this.count = results;
         results = [];
         this.runs = 0;
         await breathe();
       }
     }
-    if (this.runs % 5 !== 0) {
+    if (this.runs % 16 !== 0) {
       this.count = results;
     }
     this.isComplete = true;
@@ -170,7 +174,8 @@ class WorkerSimulator {
 }
 let _simulation = null;
 
-onmessage = ({ data }) => {
+onmessage = (e) => {
+  const data = JSON.parse(e.data);
   if (data.name === 'start') {
     if (_simulation) {
       _simulation.destroy();
