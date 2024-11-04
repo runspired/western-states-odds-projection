@@ -1,4 +1,3 @@
-/*! coi-serviceworker v0.1.6 - Guido Zuidhof, licensed under MIT */
 let coepCredentialless = false;
 if (typeof window === 'undefined') {
   self.addEventListener('install', () => self.skipWaiting());
