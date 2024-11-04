@@ -14,7 +14,10 @@ const GROUP_SEED_DATA_2018 = [2658, 1060, 668, 283, 161, 71, 8];
 const GROUP_SEED_DATA_2019 = [3113, 1281, 697, 455, 191, 95, 30];
 const GROUP_SEED_DATA_2020 = [3250, 1447, 914, 549, 315, 126, 54, 9];
 const GROUP_SEED_DATA_2022 = [3318, 1063, 722, 514, 328, 186, 59, 18];
-const GROUP_SEED_DATA_2023 = [3563, 1576, 733, 525, 373, 232, 126, 37, 5];
+const GROUP_SEED_DATA_2023 = [3560, 1578, 731, 525, 374, 232, 127, 37, 5];
+const GROUP_SEED_DATA_2024 = [4434, 2216, 1231, 606, 420, 256, 147, 70, 8];
+const GROUP_SEED_DATA_2025 = [2689, 1882, 1168, 710, 354, 250, 167, 66, 17, 1];
+
 const MAX_APPLICANTS = 36000;
 const DATA_SETS = {
   2015: GROUP_SEED_DATA_2015,
@@ -25,6 +28,8 @@ const DATA_SETS = {
   2020: GROUP_SEED_DATA_2020,
   2022: GROUP_SEED_DATA_2022,
   2023: GROUP_SEED_DATA_2023,
+  2024: GROUP_SEED_DATA_2024,
+  // 2025: GROUP_SEED_DATA_2025,
 };
 
 class Group {
@@ -399,7 +404,7 @@ const config = {
 };
 const years = [];
 let year = null;
-for (let i = 0; i <= 8; i++) {
+for (let i = 0; i <= datasets.length; i++) {
   year = new Year(year, config);
   if (year.year === 2021) {
     continue;
@@ -446,7 +451,7 @@ const DRAWS = 275;
 const WAITLIST_DRAWS = 75;
 const WAITLIST_FACTOR = 0.5;
 const DEFAULT_ATTRITION = 0.2;
-const TOTAL_YEARS = 9;
+const TOTAL_YEARS = Object.keys(DATA_SETS).length + 1;
 const FORMULA = 'Math.pow(2, n)';
 
 class Config {

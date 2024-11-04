@@ -9,7 +9,7 @@
     <label>Odds Of Entry From Waitlist: <input type="number" min="0" step=".01" max="1" value={{this.waitlistFactor}} {{on "input" (fn this.updateFloat "waitlistFactor")}}/></label>
     <label>Attrition<input type="string" value={{this.attrition}} {{on "input" (fn this.updateArr "attrition")}}/></label>
     <label>Default Attrition<input type="number" min="0" step=".01" max="1" value={{this.defaultAttrition}} {{on "input" (fn this.updateFloat "defaultAttrition")}}/></label>
-    <label>Use Monte Carlo Simulation (slow)<input type="checkbox" checked={{this.useMonteCarlo}} {{on "change" this.updateMonteCarlo}}/></label>
+    <label>Use Monte Carlo Simulation<input type="checkbox" checked={{this.useMonteCarlo}} {{on "change" this.updateMonteCarlo}}/></label>
 
     <br>
     <button hidden type="submit" {{on "click" this.updateModel}}>Update</button>

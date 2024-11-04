@@ -2,10 +2,10 @@
   "name": "odds-calculator",
   "version": "0.0.0",
   "private": true,
-  "description": "Small description for odds-calculator goes here",
+  "description": "Small application for efficiently calculating current and future odds for the Western States 100 lottery",
   "repository": "",
   "license": "MIT",
-  "author": "",
+  "author": "Chris Thoburn <runspired@gmail.com>",
   "directories": {
     "doc": "doc",
     "test": "tests"
@@ -23,50 +23,55 @@
     "test:ember": "ember test"
   },
   "devDependencies": {
-    "@babel/core": "^7.19.6",
-    "@ember/optional-features": "^2.0.0",
-    "@ember/test-helpers": "^2.8.1",
+    "@babel/core": "^7.26.0",
+    "@ember/optional-features": "^2.2.0",
+    "@ember/test-helpers": "^4.0.4",
     "@glimmer/component": "^1.1.2",
     "@glimmer/tracking": "^1.1.2",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
-    "ember-auto-import": "~2.4.3",
-    "ember-cli": "~4.7.0",
-    "ember-cli-babel": "^7.26.11",
-    "ember-cli-dependency-checker": "^3.3.1",
-    "ember-cli-htmlbars": "^6.1.1",
+    "ember-auto-import": "^2.9.0",
+    "ember-cli": "~5.12.0",
+    "ember-cli-babel": "^8.2.0",
+    "ember-cli-dependency-checker": "^3.3.2",
+    "ember-cli-htmlbars": "^6.3.0",
     "ember-cli-sri": "^2.1.1",
     "ember-cli-terser": "^4.0.2",
-    "ember-modifier": "^4.0.0-beta.1",
-    "ember-resolver": "^8.0.3",
-    "ember-source": "~4.9.1",
-    "ember-template-lint": "^4.14.0",
+    "ember-modifier": "^4.2.0",
+    "ember-resolver": "^13.0.2",
+    "ember-source": "~5.12.0",
+    "ember-template-lint": "^6.0.0",
     "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-ember": "^11.0.6",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-ember": "^11.12.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-qunit": "^7.3.1",
+    "eslint-plugin-qunit": "^7.3.4",
     "loader.js": "^4.7.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.7.1",
-    "webpack": "^5.74.0"
+    "prettier": "^3.3.3",
+    "webpack": "^5.96.1"
   },
   "engines": {
-    "node": "14.* || >= 16"
+    "node": ">= 22"
   },
   "ember": {
     "edition": "octane"
   },
   "dependencies": {
-    "@embroider/compat": "^2.0.2",
-    "@embroider/core": "^2.0.2",
-    "@embroider/webpack": "^2.0.2",
-    "chart.js": "^3.9.1"
+    "@embroider/compat": "^3.6.5",
+    "@embroider/core": "^3.4.19",
+    "@embroider/webpack": "^4.0.8",
+    "chart.js": "^4.4.6"
   },
   "ember-addon": {
     "paths": [
       "lib/server-headers"
     ]
+  },
+  "packageManager": "pnpm@9.12.3",
+  "volta": {
+    "node": "23.1.0",
+    "pnpm": "9.12.3"
   }
 }
