@@ -30,10 +30,10 @@
     "@glimmer/tracking": "^1.1.2",
     "@babel/eslint-parser": "^7.25.9",
     "broccoli-asset-rev": "^3.0.0",
-    "ember-auto-import": "^2.9.0",
+    "ember-auto-import": "^2.10.0",
     "ember-cli": "~5.12.0",
     "ember-cli-babel": "^8.2.0",
-    "ember-cli-dependency-checker": "^3.3.2",
+    "ember-cli-dependency-checker": "^3.3.3",
     "ember-cli-htmlbars": "^6.3.0",
     "ember-cli-sri": "^2.1.1",
     "ember-cli-terser": "^4.0.2",
@@ -50,7 +50,7 @@
     "loader.js": "^4.7.0",
     "npm-run-all2": "^7.0.1",
     "prettier": "^3.3.3",
-    "webpack": "^5.96.1"
+    "webpack": "^5.97.1"
   },
   "engines": {
     "node": ">= 22.11.0"
@@ -59,8 +59,8 @@
     "edition": "octane"
   },
   "dependencies": {
-    "@embroider/compat": "^3.6.5",
-    "@embroider/core": "^3.4.19",
+    "@embroider/compat": "^3.7.1",
+    "@embroider/core": "^3.4.20",
     "@embroider/webpack": "^4.0.8",
     "chart.js": "^4.4.6"
   },
